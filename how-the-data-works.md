@@ -1,37 +1,42 @@
-# How the Data Works: JSON Storage & Service Architecture
+# Student Guide: How the Data Works (JSON & Services)
 
-This document explains the data layer in this application, including why JSON files were chosen over a traditional relational database, how data is organized, and how the dependency-injected service manages reads and writes.
-
----
-
-## 1. Why JSON Instead of a Traditional Database?
-
-In early iterations of this demo suite, the application relied on SQLite and Entity Framework Core (`ApplicationDbContext`). For an educational application specifically focused on teaching **HTTP protocol semantics and URL routing**, replacing a SQL database with local JSON files provides several benefits:
-
-1. **Zero Database Configuration**:
-   Students do not need to install SQL Server, configure database connection strings, or run Entity Framework migrations (`dotnet ef database update`). The application clones and runs immediately with `dotnet run`.
-2. **Transparent, Human-Readable Data**:
-   Students can open the `Data/*.json` files directly in their code editor to see raw data records, modify them, or observe new entries being appended in real-time.
-3. **No External Package Dependencies**:
-   By relying on .NET's built-in `System.Text.Json` library, `Microsoft.EntityFrameworkCore.Sqlite` and its related dependencies are eliminated, keeping `MyRazorApp.csproj` lean and lightweight.
-4. **Git-Friendly**:
-   JSON files can be tracked, versioned, and diffed directly in version control.
+Welcome to the data architecture guide! When you build web applications, you need a reliable way to store and retrieve data. In this guide, you will learn how this application manages data using clean, local **JSON files** and a **Dependency-Injected C# Service**, without requiring a complex SQL database setup.
 
 ---
 
-## 2. The JSON Data Files
+## 1. Why We Use JSON for This Lab
 
-All application data resides in the `Data/` directory:
+When learning web development, configuring relational database servers, connection strings, user credentials, and database migrations can sometimes get in the way of what you are really trying to master: **understanding the HTTP protocol, URL routing, and web forms**.
+
+For this lab, we use simple JSON files in the `Data/` directory for four practical reasons:
+
+1. **Zero Database Setup**:
+   You don't need to install SQL Server, configure Docker containers, or run migrations (`dotnet ef database update`). The project works right out of the box with `dotnet run`.
+2. **Transparent, Inspectable Data**:
+   You can open any file in the `Data/` folder right inside VS Code or Visual Studio. You can inspect the raw text, add mock records, or watch new entries appear when you submit a form.
+3. **No External Packages Needed**:
+   By using .NET's built-in `System.Text.Json` library, our project has zero third-party database dependencies. This keeps your project fast, clean, and lightweight.
+4. **Git-Friendly & Easy to Reset**:
+   If you ever want to reset your demo data back to the starting point, you can simply run `git checkout Data/`.
+
+---
+
+## 2. Tour of Your Data Files
+
+All data files live in the `Data/` folder:
 
 ```
 Data/
-├── courses.json     # Course catalog for the GET filtering demo
-├── staff.json       # Employee entity records for the Route parameter demos
-└── feedback.json    # Persisted submissions from the POST demo
+├── courses.json     # Course catalog queried by Demo 1 (GET)
+├── staff.json       # Employee entity records used by Demos 2 & 3 (Routing)
+└── feedback.json    # Submissions written by Demo 4 (POST)
 ```
 
 ### `Data/courses.json` (Read-Only Dataset)
-Contains an array of educational courses used in **Demo 1 (`/GetDemo`)** to illustrate query-string-based filtering:
+* **Used by**: **Demo 1 (`/GetDemo`)**
+* **Purpose**: Simulates an academic course catalog.
+* **How it helps you learn**: When you select dropdown filters on the GET demo page, your C# code reads this list and filters it using LINQ based on the query string parameters you provided.
+
 ```json
 [
   {
@@ -40,14 +45,21 @@ Contains an array of educational courses used in **Demo 1 (`/GetDemo`)** to illu
     "category": "Computer Science",
     "level": "Beginner"
   },
-  ...
+  {
+    "code": "CS102",
+    "title": "ASP.NET Core Razor Pages",
+    "category": "Computer Science",
+    "level": "Intermediate"
+  }
 ]
 ```
 
-### `Data/staff.json` (Hierarchical Entity Dataset)
-Contains staff members grouped by department (`engineering`, `design`, `product`). This data is consumed by:
-* **Demo 2 (`/RouteDemo/{id}`)**: Resolves an employee by their unique integer `id`.
-* **Demo 3 (`/MultiRouteDemo/{department}/{id}`)**: Resolves staff members filtered by the `department` path parameter.
+### `Data/staff.json` (Structured Entity Dataset)
+* **Used by**: **Demo 2 (`/RouteDemo`)** and **Demo 3 (`/MultiRouteDemo`)**
+* **Purpose**: Simulates an employee directory grouped by departments (`engineering`, `design`, `product`).
+* **How it helps you learn**:
+  * In Demo 2, route parameter `{id}` selects a specific employee from this file.
+  * In Demo 3, route parameter `{department}` filters staff members belonging to that department slug.
 
 ```json
 [
@@ -60,13 +72,15 @@ Contains staff members grouped by department (`engineering`, `design`, `product`
     "salary": "£75,000",
     "employmentType": "Full-Time",
     "hiredDate": "2019-03-15"
-  },
-  ...
+  }
 ]
 ```
 
-### `Data/feedback.json` (Read/Write Persistent Dataset)
-Stores user-submitted feedback entries. When a user submits the form in **Demo 4 (`/PostDemo`)**, the server creates a new entry and appends it to this file:
+### `Data/feedback.json` (Read & Write Dataset)
+* **Used by**: **Demo 4 (`/PostDemo`)**
+* **Purpose**: Stores student feedback submissions.
+* **How it helps you learn**: When you submit the POST form, your server creates a new C# object, serializes it to JSON, and appends it to this file. When the page redirects via GET, it reads this file to display your submission in the table below.
+
 ```json
 [
   {
@@ -82,9 +96,9 @@ Stores user-submitted feedback entries. When a user submits the form in **Demo 4
 
 ---
 
-## 3. C# Data Models
+## 3. Mapping JSON to C# Models (Records)
 
-The data structures in the JSON files map directly to C# `record` types in the `Models/` folder:
+To work with JSON in C# with type safety, we define C# models in the `Models/` folder. We use modern C# `record` types because they provide concise syntax, automatic immutability, and built-in equality comparison.
 
 * **[Course.cs](Models/Course.cs)**:
   ```csharp
@@ -128,13 +142,20 @@ The data structures in the JSON files map directly to C# `record` types in the `
 
 ---
 
-## 4. The Service Architecture (`JsonDataService`)
+## 4. The Service Pattern: Meet `JsonDataService`
 
-Rather than having individual Razor Pages read and write raw files directly, all file I/O operations are centralized inside **`Services/JsonDataService.cs`**.
+A common beginner mistake is to write `File.ReadAllText()` or database queries directly inside Razor Page event handlers (`OnGet` / `OnPost`).
 
-### Resolving File Paths with `IWebHostEnvironment`
-To ensure paths work reliably across different operating systems (macOS, Windows, Linux) and deployment directories, the service injects `IWebHostEnvironment` to resolve the root folder:
+Instead, professional software design follows the **Separation of Concerns** principle:
+* **Razor Pages (`.cshtml` & `.cshtml.cs`)**: Responsible *only* for handling HTTP requests, input validation, and rendering UI.
+* **Service Layer (`JsonDataService.cs`)**: Responsible *only* for reading, writing, and parsing data.
 
+Let's examine how `Services/JsonDataService.cs` works:
+
+### A. Finding Files Safely with `IWebHostEnvironment`
+Never hardcode file paths like `C:\Users\...\Data\staff.json`! Hardcoded paths break when your app runs on a friend's computer, on a Mac, or on a Linux server.
+
+Instead, we inject `IWebHostEnvironment` to find the project root dynamically:
 ```csharp
 public JsonDataService(IWebHostEnvironment env)
 {
@@ -145,14 +166,13 @@ public JsonDataService(IWebHostEnvironment env)
 }
 ```
 
-### Reading and Deserialization
-Files are read and parsed using `System.Text.Json.JsonSerializer`:
-
+### B. Deserializing JSON into C# Objects
+We use .NET's built-in `System.Text.Json.JsonSerializer`:
 ```csharp
 private readonly JsonSerializerOptions _jsonOptions = new()
 {
-    PropertyNameCaseInsensitive = true,
-    WriteIndented = true
+    PropertyNameCaseInsensitive = true, // Matches "name" in JSON to "Name" in C#
+    WriteIndented = true                // Formats output with clean indents
 };
 
 public List<Course> GetCourses()
@@ -163,9 +183,10 @@ public List<Course> GetCourses()
 }
 ```
 
-### Writing and Thread-Safety
-When a POST request is submitted, multiple concurrent requests could attempt to write to `Data/feedback.json` simultaneously. To prevent file-access collisions, write operations use an internal lock:
+### C. Safe Writes with Thread Locking
+Imagine two students submit feedback at the exact same millisecond. If both try to write to `Data/feedback.json` at the same time, the file could become corrupted.
 
+To prevent this, `JsonDataService` uses a C# `lock`:
 ```csharp
 private readonly object _feedbackLock = new();
 
@@ -176,101 +197,104 @@ public void AddFeedback(string studentName, string email, string category, strin
         var list = GetFeedback();
         int nextId = list.Count > 0 ? list.Max(f => f.Id) + 1 : 1;
         var item = new FeedbackItem(nextId, studentName, email, category, comments, DateTime.Now);
-        list.Insert(0, item);
+        list.Insert(0, item); // Put newest at the top
         var json = JsonSerializer.Serialize(list, _jsonOptions);
         File.WriteAllText(_feedbackFilePath, json);
     }
 }
 ```
+Only one request at a time is allowed inside the `lock` block, ensuring your data is always written cleanly.
 
 ---
 
-## 5. Dependency Injection (DI)
+## 5. Dependency Injection: How Pages Get the Service
 
-### Registering the Service in `Program.cs`
-In ASP.NET Core, services are registered into the built-in Inversion of Control (IoC) container during startup:
+How do your Razor Pages access `JsonDataService`? In ASP.NET Core, we use **Dependency Injection (DI)**.
 
+### Step 1: Register in `Program.cs`
+At application startup, we register `JsonDataService` with the service container:
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddSingleton<JsonDataService>();
+builder.Services.AddSingleton<JsonDataService>(); // Registered here!
 ```
+By registering it as a **Singleton**, ASP.NET Core creates a single shared instance of `JsonDataService` that lives as long as the web app is running.
 
-Registering `JsonDataService` as a **Singleton** ensures a single instance lives for the lifetime of the application, managing access to the data files and holding the file lock object.
-
-### Injecting into Razor Page Models
-Each Razor PageModel requests `JsonDataService` through its constructor:
-
+### Step 2: Inject into PageModels via Constructor
+When a page needs data, it simply asks for `JsonDataService` in its constructor:
 ```csharp
-public class GetDemoModel : PageModel
+public class RouteDemoModel : PageModel
 {
     private readonly JsonDataService _jsonDataService;
 
-    public GetDemoModel(JsonDataService jsonDataService)
+    // ASP.NET Core automatically supplies the service here!
+    public RouteDemoModel(JsonDataService jsonDataService)
     {
         _jsonDataService = jsonDataService;
     }
 
-    public void OnGet()
+    public void OnGet(int? id)
     {
-        var courses = _jsonDataService.GetCourses();
-        // Filter courses with LINQ based on query string parameters...
+        // Now you can easily use the service:
+        SampleStaff = _jsonDataService.GetStaff();
     }
 }
 ```
 
 ---
 
-## 6. End-to-End Data Lifecycle Examples
+## 6. End-to-End Tracing: What Happens During a Request?
 
-### A. Reading with HTTP GET (`/GetDemo`)
+Let's trace the complete lifecycle of both a read operation (GET) and a write operation (POST).
+
+### A. The Read Lifecycle (HTTP GET `/GetDemo`)
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User as Browser Client
+    actor Student as You (Browser)
     participant Page as GetDemo.cshtml.cs
     participant Service as JsonDataService
     participant File as courses.json
 
-    User->>Page: GET /GetDemo?Subject=Computer+Science
-    Note over Page: Razor binds Subject from query string
-    Page->>Service: GetCourses()
-    Service->>File: ReadAllText() & Deserialize
-    File-->>Service: List<Course>
-    Service-->>Page: List<Course>
-    Note over Page: Filter courses with LINQ where Category == Subject
-    Page-->>User: Render HTML table with filtered results
+    Student->>Page: GET /GetDemo?Subject=Computer+Science
+    Note over Page: 1. ASP.NET binds ?Subject to C# property
+    Page->>Service: 2. GetCourses()
+    Service->>File: 3. ReadAllText() & Deserialize JSON
+    File-->>Service: Return JSON text
+    Service-->>Page: Return List<Course>
+    Note over Page: 4. Filter list with LINQ where Category == Subject
+    Page-->>Student: 5. Render HTML table with filtered results
 ```
 
-### B. Mutating with HTTP POST & the PRG Pattern (`/PostDemo`)
+### B. The Write & PRG Lifecycle (HTTP POST `/PostDemo`)
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User as Browser Client
+    actor Student as You (Browser)
     participant Page as PostDemo.cshtml.cs
     participant Service as JsonDataService
     participant File as feedback.json
 
-    User->>Page: POST /PostDemo (Form payload in request body)
-    Note over Page: Validate model state & input
-    Page->>Service: AddFeedback("Alex", "alex@uni.ac.uk", ...)
-    Service->>File: Thread-safe serialize & WriteAllText()
-    File-->>Service: OK
-    Note over Page: Set TempData["FlashMessage"]
-    Page-->>User: HTTP 302 Redirect to /PostDemo
-    User->>Page: GET /PostDemo
-    Page->>Service: GetFeedback()
+    Student->>Page: POST /PostDemo (Form payload in HTTP body)
+    Note over Page: 1. Validate inputs (ModelState.IsValid)
+    Page->>Service: 2. AddFeedback(name, email, category, comments)
+    Service->>File: 3. Thread-safe serialize & write to disk
+    File-->>Service: Write complete
+    Note over Page: 4. Set TempData["FlashMessage"] = "Submitted!"
+    Page-->>Student: 5. Return HTTP 302 Redirect to /PostDemo
+    Student->>Page: 6. Browser automatically issues GET /PostDemo
+    Page->>Service: 7. GetFeedback()
     Service->>File: ReadAllText()
-    File-->>Service: List<FeedbackItem>
-    Page-->>User: Render HTML with flash confirmation & updated list
+    File-->>Service: Return all feedback
+    Service-->>Page: Return List<FeedbackItem>
+    Page-->>Student: 8. Render HTML with flash confirmation alert & updated table
 ```
 
 ---
 
-## 7. Educational Takeaways for Students
+## 7. Key Takeaways for Your Coursework
 
-1. **Separation of Concerns**: Razor Pages handle presentation, HTTP routing, and input validation; `JsonDataService` encapsulates data retrieval and serialization.
-2. **Stateless Protocols vs Persistence**: HTTP is a stateless protocol. Using `JsonDataService` inside the Post-Redirect-Get pattern illustrates how state mutation is safely separated from state presentation.
-3. **LINQ over Collections**: Because `JsonDataService` returns standard .NET collections (`List<Course>`, `List<StaffMember>`), students can practice using LINQ methods (`.Where()`, `.FirstOrDefault()`, `.Select()`, `.Distinct()`) identical to how they would query an Entity Framework `DbSet`.
+1. **Practice LINQ**: Because `JsonDataService` returns standard C# collections (`List<Course>`, `List<StaffMember>`), you can practice using LINQ queries (`.Where(...)`, `.FirstOrDefault(...)`, `.Select(...)`) exactly the same way you will when working with databases like Entity Framework.
+2. **Keep Pages Clean**: Keep your database/file logic out of `.cshtml.cs` files. Centralizing data operations in a dedicated Service class makes your code easier to read, test, and maintain.
+3. **Use the PRG Pattern on Every Form**: Whenever you write an `OnPost()` method in Razor Pages, remember to end it with `return RedirectToPage(...)`. Your users (and your exam graders!) will thank you for preventing duplicate submissions.

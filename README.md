@@ -1,156 +1,226 @@
-# HTTP Methods & Routing in ASP.NET Core Razor Pages
+# Student Guide: HTTP Methods & Routing in ASP.NET Core Razor Pages
 
-An educational, interactive web demonstration suite created for students and developers to explore **HTTP Methods (GET vs POST)**, **URL Query Strings**, **Route Parameters**, and the **Post-Redirect-Get (PRG) Pattern** in ASP.NET Core Razor Pages.
+Welcome! As a web developer, understanding how browsers talk to web servers is one of the most essential skills you will learn. Every time you click a link, search for a product, or submit a form, your browser issues an HTTP request.
+
+This repository is designed as your **hands-on interactive sandbox**. Through four focused demonstrations, you will explore and experiment with:
+1. **HTTP GET & Query Strings**: How search filters are encoded into URLs.
+2. **Route Parameters vs Query Strings**: When to use path segments vs query strings.
+3. **Multiple Route Parameters**: How nested paths map to multiple route segments.
+4. **HTTP POST & the PRG Pattern**: How form data is sent safely and how to prevent duplicate submissions.
 
 ---
 
-## Quick Start
+## Getting Started
 
 ### Prerequisites
-- [.NET 10.0 SDK](https://dotnet.microsoft.com/download) (or .NET 8+)
-
-### Running Locally
+Make sure you have the [.NET SDK](https://dotnet.microsoft.com/download) installed (.NET 10.0 or .NET 8+). You can verify this in your terminal:
 ```bash
-# Clone the repository and navigate into the project directory
-cd webdev-razor-http-methods
-
-# Restore packages and run using the HTTP profile
-dotnet run --launch-profile http
+dotnet --version
 ```
 
-Open your browser and navigate to:
+### Running Your Lab Locally
+1. Clone this repository and open a terminal inside the project directory:
+   ```bash
+   cd webdev-razor-http-methods
+   ```
+2. Start the local development web server:
+   ```bash
+   dotnet run --launch-profile http
+   ```
+3. Open your browser and navigate to:
+   ```
+   http://localhost:5110
+   ```
+4. You will see the **HTTP & Routing Educational Demos Hub**. From here, you can click into each demo or use the top navigation bar.
+
+---
+
+## Tour of the Four Demos
+
+---
+
+### Demo 1: HTTP GET & Query Strings (`/GetDemo`)
+
+> **Key Takeaway**: Use HTTP GET for retrieving data. GET requests put all parameters directly into the URL query string, making your search results bookmarkable, shareable, and safe to refresh.
+
+* **URL to visit**: `http://localhost:5110/GetDemo`
+* **Source code to inspect**: `Pages/GetDemo.cshtml` & `Pages/GetDemo.cshtml.cs`
+
+#### The Core Concept
+When you submit an HTML form with `method="get"`, the browser collects all the input names and values and appends them to the end of the URL after a `?`, separated by `&`:
 ```
-http://localhost:5110
+/GetDemo?Subject=Computer+Science&Level=Beginner&Keyword=web
 ```
+Because the entire filter state is stored in the URL, GET requests are:
+* **Bookmarkable & Shareable**: You can copy the URL and send it to a friend; they will see the exact same filtered results.
+* **Idempotent**: Requesting the page multiple times never modifies any data on the server.
+* **Cached & Logged**: Browsers, proxies, and web servers can safely cache GET requests.
+
+#### Things to Try (Experiments to Run)
+1. **Filter by Category**: Select *Computer Science* and click **Filter Courses (GET)**. Look at the browser's address bar. Notice how `?Subject=Computer+Science` appeared.
+2. **Look at the HTTP Inspector**: Scroll down to the black terminal box on the page. Notice how `Request.Query["Subject"]` extracted the value automatically.
+3. **Copy the URL into a New Tab**: Open a new browser tab and paste your filtered URL. Notice how the page loads already filtered without needing to click anything.
+4. **Try Keyword Search**: Type `SQL` in the keyword box and press Enter. Notice how multiple parameters are joined with `&`: `?Subject=...&Keyword=SQL`.
+
+#### Behind the Scenes in C#
+In Razor Pages, you automatically bind query string parameters to C# properties using the `[BindProperty(SupportsGet = true)]` attribute:
+```csharp
+[BindProperty(SupportsGet = true)]
+public string? Subject { get; set; }
+
+[BindProperty(SupportsGet = true)]
+public string? Keyword { get; set; }
+```
+When `OnGet()` executes, ASP.NET Core automatically reads matching keys from the query string and populates these properties before your code runs!
 
 ---
 
-## Overview of the Four Interactive Demos
+### Demo 2: Single Route Parameter vs Query Strings (`/RouteDemo`)
 
-The application includes four dedicated interactive demos, accessible from the top navigation bar or the home hub (`/Index`):
+> **Key Takeaway**: Use **Route Parameters** to locate a specific resource (e.g. Employee #101). Use **Query Strings** to modify how that resource is viewed (e.g. which tab to display).
 
-### 1. HTTP GET & Query Strings (`/GetDemo`)
-* **URL**: `/GetDemo`
-* **Razor Page**: `Pages/GetDemo.cshtml` & `Pages/GetDemo.cshtml.cs`
-* **Educational Focus**:
-  * Demonstrates form submission using `<form method="get">`.
-  * Form inputs are serialized directly into the URL query string (e.g. `?Subject=Computer+Science&Level=Beginner&Keyword=web`).
-  * Shows how properties decorated with `[BindProperty(SupportsGet = true)]` are automatically populated from matching query string keys in Razor Pages.
-  * Explains key characteristics of HTTP GET:
-    * **Bookmarkable & Shareable**: The complete search/filter state is preserved in the URL.
-    * **Idempotent**: Executing the request repeatedly does not mutate server state.
-* **Interactive Features**:
-  * Filter dropdowns (Subject, Level) and keyword search over course records loaded from `Data/courses.json`.
-  * **Real-time Protocol Inspector**: Displays the raw HTTP request line, the browser URL, and breaks down individual query parameters parsed from `Request.Query`.
+* **URL to visit**: `http://localhost:5110/RouteDemo`
+* **Source code to inspect**: `Pages/RouteDemo.cshtml` & `Pages/RouteDemo.cshtml.cs`
 
----
+#### The Core Concept
+Web developers often wonder: *Should I put data in the URL path or in a query string?* This demo teaches the architectural rule of thumb:
+* **Route Parameter** (`/RouteDemo/101`): Answers **WHAT** resource you want to view. Think of it like a primary key or unique identifier.
+* **Query String** (`?tab=compensation`): Answers **HOW** you want to view that resource (e.g. view options, tabs, sorting, pagination).
 
-### 2. Single Route Parameter vs Query Strings (`/RouteDemo`)
-* **URL Template**: `/RouteDemo/{id:int?}`
-* **Razor Page**: `Pages/RouteDemo.cshtml` & `Pages/RouteDemo.cshtml.cs`
-* **Directive**: `@page "{id:int?}"`
-* **Educational Focus**:
-  * Explains the architectural distinction between **Route Parameters** and **Query Strings**:
-    * **Route Parameters** (`/RouteDemo/101`): Used to identify a *unique resource or entity* on the server (e.g. staff member ID 101).
-    * **Query Strings** (`?tab=compensation`): Used for *view modifiers, filters, or UI options* applied to that resource.
-  * Demonstrates how ASP.NET Core routing extracts path segments into `RouteData.Values["id"]` and binds them to PageModel properties.
-* **Interactive Features**:
-  * Staff entity selector buttons that update the path parameter (`/RouteDemo/101`, `/RouteDemo/102`, etc.).
-  * Tab navigation that updates the query string (`?tab=overview`, `?tab=employment`, `?tab=compensation`).
-  * **Real-time Routing Inspector**: Breaks down path parameters vs query parameters in a color-coded terminal view.
+#### Things to Try (Experiments to Run)
+1. **Click Staff Member Buttons**: Click *ID 101: Alice Morgan*, then *ID 102: Bob Chen*. Notice how the URL path changes (`/RouteDemo/101` $\rightarrow$ `/RouteDemo/102`).
+2. **Click the Tab Modifiers**: While viewing Alice Morgan, click **Tab: Compensation**. Notice how the URL becomes:
+   ```
+   /RouteDemo/101?tab=compensation
+   ```
+   The `101` is part of the path (the resource), while `?tab=compensation` is a query string (the view option).
+3. **Inspect the Inspector**: Check the green and purple output in the inspector box. See how ASP.NET Core splits the URL between `RouteData.Values["id"]` and `Model.Tab`.
+
+#### Behind the Scenes in C#
+At the top of `Pages/RouteDemo.cshtml`, the `@page` directive defines the route template:
+```csharp
+@page "{id:int?}"
+```
+The `{id:int?}` syntax tells ASP.NET Core:
+* There is an optional route parameter called `id`.
+* The `:int` inline constraint ensures it only matches numeric digits.
+* In `RouteDemo.cshtml.cs`, `public void OnGet(int? id)` receives the value directly as a parameter.
 
 ---
 
-### 3. Multiple Route Parameters (`/MultiRouteDemo`)
-* **URL Template**: `/MultiRouteDemo/{department?}/{id:int?}`
-* **Razor Page**: `Pages/MultiRouteDemo.cshtml` & `Pages/MultiRouteDemo.cshtml.cs`
-* **Directive**: `@page "{department?}/{id:int?}"`
-* **Educational Focus**:
-  * Demonstrates mapping hierarchical URL path segments using multiple route tokens in the `@page` directive.
-  * Explains how ASP.NET Core Tag Helpers resolve parameters:
-    * Attributes that match route tokens (`asp-route-department="engineering"` and `asp-route-id="101"`) become URL path segments: `/MultiRouteDemo/engineering/101`.
-    * Attributes that do *not* match route tokens (such as `asp-route-tab="compensation"`) automatically fallback to query strings: `?tab=compensation`.
-* **Interactive Features**:
-  * Department selection (Segment 1) and Staff member selection (Segment 2).
-  * Tab switching via query strings.
-  * **Real-time Multi-Route Inspector**: Displays Segment 1, Segment 2, and Query String keys independently.
+### Demo 3: Multiple Route Parameters (`/MultiRouteDemo`)
+
+> **Key Takeaway**: You can nest multiple route parameters in a URL path to express clean, hierarchical relationships like `/department/employeeId`.
+
+* **URL to visit**: `http://localhost:5110/MultiRouteDemo`
+* **Source code to inspect**: `Pages/MultiRouteDemo.cshtml` & `Pages/MultiRouteDemo.cshtml.cs`
+
+#### The Core Concept
+Real-world web APIs and websites often have hierarchical relationships:
+* An e-commerce store: `/products/electronics/laptops/42`
+* A university portal: `/courses/computing/cs101`
+* Our staff directory: `/MultiRouteDemo/engineering/101`
+
+ASP.NET Core allows you to define multiple path segments in a single `@page` directive.
+
+#### Things to Try (Experiments to Run)
+1. **Select a Department**: Click `/design`. Notice the URL becomes `/MultiRouteDemo/design`. The list of staff members dynamically updates to only show designers.
+2. **Select an Employee**: Click *ID 102: Bob Chen*. The URL becomes:
+   ```
+   /MultiRouteDemo/design/102
+   ```
+3. **Switch Tabs**: Click `?tab=compensation`. The final URL combines both route segments with a query modifier:
+   ```
+   /MultiRouteDemo/design/102?tab=compensation
+   ```
+4. **Look at the Tag Helpers**: Open `Pages/MultiRouteDemo.cshtml` in your editor. Notice how the links are written:
+   ```html
+   <a asp-page="/MultiRouteDemo"
+      asp-route-department="@dept.Slug"
+      asp-route-id="@staff.Id"
+      asp-route-tab="compensation">
+   ```
+   ASP.NET Core is smart: `department` and `id` match the route tokens in `@page "{department?}/{id:int?}"`, so they become path segments. `tab` does *not* match, so ASP.NET Core automatically appends it as a query string!
 
 ---
 
-### 4. HTTP POST & Post-Redirect-Get (PRG) Pattern (`/PostDemo`)
-* **URL**: `/PostDemo`
-* **Razor Page**: `Pages/PostDemo.cshtml` & `Pages/PostDemo.cshtml.cs`
-* **Educational Focus**:
-  * Demonstrates data transmission inside the **HTTP Request Body** using `<form method="post">`.
-  * Contrasts POST with GET:
-    * Form inputs are *not* exposed in the browser's address bar, bookmarks, or web server access logs.
-    * Used for state-mutating (non-idempotent) actions such as creating or updating records.
-  * Explains and demonstrates the **Post-Redirect-Get (PRG)** pattern:
-    1. **POST**: Client submits the form payload to `/PostDemo`.
-    2. **Redirect**: Server processes data, persists it to `Data/feedback.json`, sets a flash message in `TempData`, and returns an HTTP 302/303 redirect to `RedirectToPage("/PostDemo")`.
-    3. **GET**: Browser issues a clean GET request to display the confirmation message and updated list.
-    4. *Result*: Refreshing the browser (F5) will **never** trigger duplicate form submissions or browser resubmission warnings.
-* **Interactive Features**:
-  * Interactive feedback submission form with ASP.NET Core validation attributes (`[Required]`, `[EmailAddress]`, `[StringLength]`).
-  * Success alert powered by `TempData`.
-  * Simulated wire-format inspection showing request headers and `application/x-www-form-urlencoded` body payload.
-  * Table of persisted submissions loaded live from `Data/feedback.json`.
+### Demo 4: HTTP POST & the Post-Redirect-Get (PRG) Pattern (`/PostDemo`)
+
+> **Key Takeaway**: Always use HTTP POST when submitting form data that modifies state. Always follow a successful POST with a redirect to a GET endpoint (the PRG pattern) to protect against duplicate submissions.
+
+* **URL to visit**: `http://localhost:5110/PostDemo`
+* **Source code to inspect**: `Pages/PostDemo.cshtml` & `Pages/PostDemo.cshtml.cs`
+
+#### The Core Concept
+Unlike GET, an HTTP POST request does not put data into the URL. Instead, form fields are packed inside the **HTTP Request Body**.
+
+* **Why use POST for forms?**
+  * Passwords, emails, and credit card numbers are hidden from the URL bar, bookmarks, and server access logs.
+  * Payloads have no arbitrary length limit (essential for file uploads and long essays).
+  * Indicates to the browser and server that data is being created or mutated (**non-idempotent**).
+
+* **What is the Post-Redirect-Get (PRG) Pattern?**
+  Have you ever submitted a form online, hit **Refresh (F5)**, and seen a scary browser popup saying:
+  > *"Confirm Form Resubmission: Are you sure you want to resubmit this form?"*
+
+  If you hit "Yes", your credit card might be charged twice! The PRG pattern completely prevents this bug:
+  1. **POST**: Your browser submits the form data to the server.
+  2. **REDIRECT**: The server saves the record to `Data/feedback.json` and responds with an HTTP `302 Redirect` back to `/PostDemo`.
+  3. **GET**: Your browser automatically follows the redirect and issues a clean `GET` request.
+
+#### Things to Try (Experiments to Run)
+1. **Submit Feedback**: Fill out the form with your name, email, category, and a comment. Click **Submit Feedback via HTTP POST**.
+2. **Observe the Green Success Alert**: Notice that the page redirected and displays your submission in the green flash box and in the persisted JSON table below.
+3. **Press F5 (Refresh)**: Refresh your browser right now. Notice what happens: **No warning popup appears!** Because the current request is a clean GET request, refreshing simply reloads the page safely.
+4. **Check the JSON File**: Open `Data/feedback.json` in your editor. Notice your new feedback was appended to the file!
 
 ---
 
-## HTTP GET vs HTTP POST Comparison
+## Quick Reference: HTTP GET vs HTTP POST
 
-| Feature | HTTP GET | HTTP POST |
+| Question to Ask Yourself | HTTP GET | HTTP POST |
 | :--- | :--- | :--- |
-| **Primary Purpose** | Retrieving data / Reading state | Submitting data / Modifying state |
-| **Data Location** | URL Query String (`?key=value`) | HTTP Request Body payload |
-| **Bookmarkable & Shareable** | Yes (all parameters are in the URL) | No (parameters reside in request body) |
-| **Idempotency** | Idempotent (safe to re-execute repeatedly) | Non-Idempotent (re-executing may duplicate data) |
-| **Sensitive Data** | Never use (visible in history & logs) | Recommended (hidden from URL & history) |
-| **Browser Refresh (F5)** | Safe; re-executes clean query | Dangerous without PRG; prompts resubmission alert |
-| **Data Storage in App** | Queries `Data/courses.json` | Persists records to `Data/feedback.json` |
+| **What is my goal?** | Read or search existing data | Create, update, or delete data |
+| **Where does data travel?** | In the URL query string (`?key=val`) | Hidden inside the HTTP Request Body |
+| **Can users bookmark the result?** | **Yes** (all inputs are in the URL) | **No** (data is not in the URL) |
+| **Is it safe to repeat (Idempotent)?** | **Yes** (repeating does not change state) | **No** (repeating may duplicate records) |
+| **What happens on browser refresh?** | Cleanly reloads the same search | Harmless with PRG; dangerous without PRG |
+| **How does this app store data?** | Reads from `Data/courses.json` | Writes new records to `Data/feedback.json` |
 
 ---
 
-## Project Structure
+## Project Structure at a Glance
 
 ```
 webdev-razor-http-methods/
 ├── Data/
-│   ├── courses.json        # Course records for GET filtering demo
-│   ├── feedback.json       # Persisted student submissions for POST demo
-│   └── staff.json          # Staff records for Route and MultiRoute demos
+│   ├── courses.json        # Course records read by Demo 1 (GET)
+│   ├── feedback.json       # Submissions stored by Demo 4 (POST)
+│   └── staff.json          # Entity records used by Demos 2 & 3 (Routing)
 ├── Models/
-│   ├── Course.cs           # C# record model for courses
-│   ├── FeedbackItem.cs     # C# record model for feedback submissions
-│   └── StaffMember.cs      # C# record model for staff entities
+│   ├── Course.cs           # C# record for courses
+│   ├── FeedbackItem.cs     # C# record for feedback
+│   └── StaffMember.cs      # C# record for staff members
 ├── Pages/
 │   ├── Shared/
-│   │   ├── _Layout.cshtml  # Global master layout with sticky responsive navigation
-│   │   └── _Layout.cshtml.css (rationalized into site.css)
-│   ├── _ViewImports.cshtml # Global Razor namespaces and tag helpers
-│   ├── _ViewStart.cshtml   # Layout configuration
-│   ├── Error.cshtml        # Error handling view
-│   ├── Index.cshtml        # Home hub introducing the 4 demos
+│   │   └── _Layout.cshtml  # Global master navigation & layout
+│   ├── Index.cshtml        # Home hub introducing the four demos
 │   ├── GetDemo.cshtml      # Demo 1: GET and Query Strings
 │   ├── RouteDemo.cshtml    # Demo 2: Single Route Parameter vs Query Strings
 │   ├── MultiRouteDemo.cshtml # Demo 3: Multiple Route Parameters
-│   └── PostDemo.cshtml     # Demo 4: POST and PRG pattern
-├── Properties/
-│   └── launchSettings.json # Local dev server port configuration (HTTP 5110)
+│   └── PostDemo.cshtml     # Demo 4: POST & Post-Redirect-Get (PRG)
 ├── Services/
-│   └── JsonDataService.cs  # Service reading/writing JSON files with thread-safety
+│   └── JsonDataService.cs  # Centralized service reading & writing JSON files
 ├── wwwroot/
 │   └── css/
-│       └── site.css        # Unified, mobile-first stylesheet for all pages
-├── appsettings.json        # Application configuration
-├── how-the-data-works.md   # Architectural documentation for JSON & DI service
-├── MyRazorApp.csproj       # Project file (.NET 10.0, zero external database packages)
-└── Program.cs              # Application startup and service registration
+│       └── site.css        # Mobile-first stylesheet for all pages
+├── how-the-data-works.md   # Student guide explaining the JSON service architecture
+└── Program.cs              # Web application startup & dependency injection setup
 ```
 
 ---
 
-## Data Architecture
+## Where to Go Next
 
-For an in-depth explanation of how data is stored, read, and written without an external SQL database, see [how-the-data-works.md](how-the-data-works.md).
+To understand how the data is loaded, how `JsonDataService` works, and how dependency injection functions in ASP.NET Core, check out the companion student guide:
+👉 **[Read: How the Data Works (JSON & Services Guide)](how-the-data-works.md)**
