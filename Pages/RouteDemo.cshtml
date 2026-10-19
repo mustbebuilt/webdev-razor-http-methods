@@ -1,0 +1,157 @@
+@page "{id:int?}"
+@model MyRazorApp.Pages.RouteDemoModel
+@{
+    ViewData["Title"] = "URL Route Parameters vs Query Strings";
+    var rawUrl = Request.Path + Request.QueryString;
+    var activeTab = Model.Tab?.ToLower() ?? "overview";
+}
+
+<div>
+    <p><a asp-page="/Index">&larr; Back to HTTP Demos Hub</a></p>
+
+    <h1>
+        <span class="badge badge-route">URL Route Params</span>
+        vs
+        <span class="badge badge-query">Query Strings</span>
+    </h1>
+    <p>Understand the semantic difference between <strong>Route Parameters</strong> (which locate a specific resource like <code>/RouteDemo/101</code>) and <strong>Query Strings</strong> (which modify view states like <code>?tab=salary&amp;viewMode=detailed</code>). All staff entities are loaded from <code>Data/staff.json</code>.</p>
+
+    <!-- Staff Selector Buttons showing Route Parameter navigation -->
+    <h3>1. Route Parameter Selection (Locates Entity Resource)</h3>
+    <p class="step-description">Click a staff member below to see how the URL path changes (e.g. <code>/RouteDemo/101</code>):</p>
+
+    <div class="button-bar">
+        @foreach (var staff in Model.SampleStaff)
+        {
+            var isSelected = Model.SelectedMember?.Id == staff.Id;
+            <a asp-page="/RouteDemo"
+               asp-route-id="@staff.Id"
+               asp-route-tab="@Model.Tab"
+               asp-route-viewMode="@Model.ViewMode"
+               class="btn @(isSelected ? "btn-primary" : "btn-secondary")">
+                ID @staff.Id: @staff.Name
+            </a>
+        }
+    </div>
+
+    <!-- Real-Time URL & Routing Inspector -->
+    <div class="http-inspector">
+        <h3>URL Structure &amp; Routing Breakdown Inspector</h3>
+        <div><strong>Raw URL Path + Query:</strong></div>
+        <div class="url-display url-subtext">
+            @rawUrl
+        </div>
+
+        <div class="param-list inspector-section">
+            <div class="param-row">
+                <div class="param-key purple-key">Route Path Param:</div>
+                <div class="param-val">
+                    <code>RouteData.Values["id"] = "@(RouteData.Values["id"] ?? "None")"</code>
+                    <br/><span class="subtext-hint">(Defined by Razor directive: <code>@@page "{id:int?}"</code>)</span>
+                </div>
+            </div>
+
+            <div class="param-row inspector-row-space">
+                <div class="param-key teal-key">Query String Params:</div>
+                <div class="param-val">
+                    <code>tab = "@Model.Tab"</code> &nbsp;|&nbsp; <code>viewMode = "@Model.ViewMode"</code>
+                    <br/><span class="subtext-hint">(Appended via query string: <code>?tab=...&amp;viewMode=...</code>)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Entity Details View -->
+    @if (Model.SelectedMember != null)
+    {
+        <div class="entity-card">
+            <div class="entity-header">
+                <div>
+                    <h2 class="entity-title">@Model.SelectedMember.Name</h2>
+                    <p class="entity-subtitle">Role: <strong>@Model.SelectedMember.Role</strong> (@Model.SelectedMember.Department)</p>
+                </div>
+                <div>
+                    <span class="badge badge-route">Resource Route ID: @Model.SelectedMember.Id</span>
+                </div>
+            </div>
+
+            <!-- Tab Modifiers using Query Strings -->
+            <div class="tab-section">
+                <h4 class="tab-title">2. Query String Tab Modifiers (Changes View State)</h4>
+                <div class="tab-button-bar">
+                    <a asp-page="/RouteDemo" asp-route-id="@Model.SelectedMember.Id" asp-route-tab="overview" asp-route-viewMode="@Model.ViewMode"
+                       class="btn tab-btn @(activeTab == "overview" ? "btn-primary" : "btn-secondary")">
+                        Tab: Overview (?tab=overview)
+                    </a>
+                    <a asp-page="/RouteDemo" asp-route-id="@Model.SelectedMember.Id" asp-route-tab="employment" asp-route-viewMode="@Model.ViewMode"
+                       class="btn tab-btn @(activeTab == "employment" ? "btn-primary" : "btn-secondary")">
+                        Tab: Employment (?tab=employment)
+                    </a>
+                    <a asp-page="/RouteDemo" asp-route-id="@Model.SelectedMember.Id" asp-route-tab="compensation" asp-route-viewMode="@Model.ViewMode"
+                       class="btn tab-btn @(activeTab == "compensation" ? "btn-primary" : "btn-secondary")">
+                        Tab: Compensation (?tab=compensation)
+                    </a>
+                </div>
+            </div>
+
+            <!-- Active Tab Display -->
+            <div class="tab-panel">
+                @if (activeTab == "overview")
+                {
+                    <h4>Overview Tab (Query string: <code>?tab=overview</code>)</h4>
+                    <dl>
+                        <dt>Full Name</dt><dd>@Model.SelectedMember.Name</dd>
+                        <dt>Email</dt><dd>@Model.SelectedMember.Email</dd>
+                        <dt>Department</dt><dd>@Model.SelectedMember.Department</dd>
+                    </dl>
+                }
+                else if (activeTab == "employment")
+                {
+                    <h4>Employment Details Tab (Query string: <code>?tab=employment</code>)</h4>
+                    <dl>
+                        <dt>Job Role</dt><dd>@Model.SelectedMember.Role</dd>
+                        <dt>Employment Status</dt><dd>@Model.SelectedMember.EmploymentType</dd>
+                        <dt>Hire Date</dt><dd>@Model.SelectedMember.HiredDate</dd>
+                    </dl>
+                }
+                else if (activeTab == "compensation")
+                {
+                    <h4>Compensation Tab (Query string: <code>?tab=compensation</code>)</h4>
+                    <dl>
+                        <dt>Annual Salary</dt><dd>@Model.SelectedMember.Salary</dd>
+                        <dt>Payroll Status</dt><dd>Active Direct Deposit</dd>
+                    </dl>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Architectural Guidance Box -->
+    <div class="info-box info-box-top-margin">
+        <h4>Architectural Rule of Thumb: Route Parameters vs Query Strings</h4>
+        <table class="clean-table">
+            <thead>
+                <tr>
+                    <th>Concept</th>
+                    <th>URL Example</th>
+                    <th>When to Use</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="badge badge-route">Route Parameter</span></td>
+                    <td><code>/RouteDemo/101</code></td>
+                    <td><strong>Identifying a Resource:</strong> Required to pinpoint a unique entity or page subject (e.g. Employee ID 101, Article slug <code>/news/latest-update</code>).</td>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-query">Query String</span></td>
+                    <td><code>?tab=salary&amp;page=2&amp;sort=asc</code></td>
+                    <td><strong>Modifying View Options:</strong> Optional filters, active UI tabs, pagination, sorting orders, or search queries applied to a resource.</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="top-margin-16">
+            <a asp-page="/MultiRouteDemo" class="btn btn-primary">Try Multiple Route Parameters Demo &rarr;</a>
+        </div>
+    </div>
+</div>

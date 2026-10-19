@@ -1,0 +1,97 @@
+@page
+@model MyRazorApp.Pages.IndexModel
+@{
+    ViewData["Title"] = "HTTP Methods & Routing Demo Hub";
+}
+
+<div>
+    <h1>HTTP &amp; Routing Educational Demos</h1>
+    <p>Explore interactive demonstrations explaining HTTP GET vs POST, Query Strings, and URL Route Parameters in ASP.NET Core Razor Pages.</p>
+
+    <div class="demo-grid">
+        <div class="demo-card">
+            <div>
+                <span class="badge badge-get">HTTP GET</span>
+                <span class="badge badge-query">Query Strings</span>
+            </div>
+            <h2>1. HTTP GET &amp; Query Strings</h2>
+            <p>Demonstrates search and filtering with <code>method="get"</code>. Data is encoded directly into the URL query string (e.g. <code>?category=CS&amp;level=intro</code>), making requests bookmarkable, shareable, and idempotent. Courses are loaded directly from a JSON data file.</p>
+            <a asp-page="/GetDemo" class="btn btn-primary">Open GET &amp; Query Demo &rarr;</a>
+        </div>
+
+        <div class="demo-card">
+            <div>
+                <span class="badge badge-route">URL Routes</span>
+                <span class="badge badge-query">Query Strings</span>
+            </div>
+            <h2>2. Single Route Parameter vs Query Strings</h2>
+            <p>Compares Route Parameters (e.g. <code>/RouteDemo/101</code>) used to identify a <strong>specific resource</strong> against Query Strings (e.g. <code>?tab=salary&amp;mode=view</code>) used for <strong>modifiers or view options</strong>. Staff records are loaded from JSON.</p>
+            <a asp-page="/RouteDemo" class="btn btn-primary">Open Single Route Demo &rarr;</a>
+        </div>
+
+        <div class="demo-card">
+            <div>
+                <span class="badge badge-route">Multi-Route</span>
+                <span class="badge badge-query">Query Strings</span>
+            </div>
+            <h2>3. Multiple Route Parameters</h2>
+            <p>Demonstrates mapping multiple URL path segments using <code>@@page "{department?}/{id:int?}"</code> (e.g. <code>/MultiRouteDemo/engineering/101?tab=compensation</code>). Structured from JSON staff data.</p>
+            <a asp-page="/MultiRouteDemo" class="btn btn-primary">Open Multi-Route Demo &rarr;</a>
+        </div>
+
+        <div class="demo-card">
+            <div>
+                <span class="badge badge-post">HTTP POST</span>
+                <span class="badge badge-get">PRG Pattern</span>
+            </div>
+            <h2>4. HTTP POST &amp; Form Submissions</h2>
+            <p>Demonstrates data mutation with <code>method="post"</code>. Payload is hidden in the HTTP Request Body (not URL bar). Features the <strong>Post-Redirect-Get (PRG)</strong> pattern and persists submissions to a JSON file.</p>
+            <a asp-page="/PostDemo" class="btn btn-primary">Open POST &amp; PRG Demo &rarr;</a>
+        </div>
+    </div>
+
+    <div class="info-box">
+        <h4>Key HTTP Concepts for Web Developers</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>HTTP GET</th>
+                    <th>HTTP POST</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Primary Purpose</strong></td>
+                    <td>Retrieving data / Reading state</td>
+                    <td>Submitting data / Modifying state</td>
+                </tr>
+                <tr>
+                    <td><strong>Data Location</strong></td>
+                    <td>URL Query String (e.g. <code>?key=val</code>)</td>
+                    <td>HTTP Request Body payload</td>
+                </tr>
+                <tr>
+                    <td><strong>Bookmarkable / Shareable</strong></td>
+                    <td>Yes (URL contains all parameters)</td>
+                    <td>No (parameters are in request body)</td>
+                </tr>
+                <tr>
+                    <td><strong>Idempotency</strong></td>
+                    <td>Idempotent (safe to re-execute repeatedly)</td>
+                    <td>Non-Idempotent (may duplicate records)</td>
+                </tr>
+                <tr>
+                    <td><strong>Sensitive Data (Passwords)</strong></td>
+                    <td>Never use (visible in browser history &amp; logs)</td>
+                    <td>Recommended (hidden from URL &amp; browser history)</td>
+                </tr>
+                <tr>
+                    <td><strong>Data Storage</strong></td>
+                    <td>Read-only query against JSON data</td>
+                    <td>Persists new records to JSON file</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

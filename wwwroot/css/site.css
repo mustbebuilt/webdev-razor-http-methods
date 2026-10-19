@@ -1,0 +1,1024 @@
+/* ==========================================================================
+   HTTP Methods & Routing Demo - Unified Mobile-First Stylesheet
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Design Tokens & CSS Custom Properties
+   -------------------------------------------------------------------------- */
+:root {
+  /* Color Palette */
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-alt: #f1f5f9;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --line: #e2e8f0;
+
+  /* Primary Brand (Teal) */
+  --primary: #0f766e;
+  --primary-dark: #115e59;
+  --primary-light: #ccfbf1;
+  --primary-focus: rgba(15, 118, 110, 0.2);
+
+  /* HTTP Method Accents */
+  --get-bg: #dbeafe;
+  --get-text: #1e40af;
+  --get-border: #bfdbfe;
+
+  --post-bg: #fef3c7;
+  --post-text: #92400e;
+  --post-border: #fde68a;
+  --btn-post: #d97706;
+  --btn-post-dark: #b45309;
+
+  --route-bg: #f3e8ff;
+  --route-text: #6b21a8;
+  --route-border: #e9d5ff;
+
+  --query-bg: #e0f2fe;
+  --query-text: #0369a1;
+  --query-border: #bae6fd;
+
+  /* Alert / Success */
+  --success-bg: #dcfce7;
+  --success-text: #14532d;
+  --success-border: #86efac;
+  --danger: #dc2626;
+
+  /* Inspector Terminal */
+  --inspector-bg: #0f172a;
+  --inspector-surface: #1e293b;
+  --inspector-text: #f8fafc;
+  --inspector-title: #38bdf8;
+  --inspector-url: #4ade80;
+  --inspector-key: #fbbf24;
+  --inspector-purple: #c084fc;
+  --inspector-teal: #2dd4bf;
+
+  /* Radii & Shadows */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+}
+
+/* --------------------------------------------------------------------------
+   2. Base Reset & Typography (Mobile Default)
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--text);
+  background-color: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4 {
+  color: var(--text);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-top: 0;
+}
+
+h1 {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+
+h3 {
+  font-size: 1.05rem;
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+h4 {
+  font-size: 0.95rem;
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+
+p {
+  color: var(--text-muted);
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 0.95rem;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+a:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.88em;
+  background-color: var(--surface-alt);
+  padding: 2px 5px;
+  border-radius: 4px;
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+/* --------------------------------------------------------------------------
+   3. Header, Navigation & Brand (Mobile First)
+   -------------------------------------------------------------------------- */
+header {
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 12px 16px;
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+a.navbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 1.05rem;
+  padding: 4px 0;
+}
+
+a.navbar-brand:hover {
+  text-decoration: none;
+  color: var(--primary);
+}
+
+.brand-badge {
+  background: var(--primary);
+  color: #ffffff;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.brand-title {
+  font-weight: 700;
+}
+
+header nav {
+  width: 100%;
+}
+
+header nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+header nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background-color: transparent;
+  transition: all 0.15s ease;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+header nav a:hover {
+  color: var(--primary);
+  background-color: var(--surface-alt);
+  text-decoration: none;
+}
+
+/* --------------------------------------------------------------------------
+   4. Main Container & Footer (Mobile First)
+   -------------------------------------------------------------------------- */
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 100%;
+  margin: 16px auto;
+  padding: 0 16px;
+}
+
+footer {
+  border-top: 1px solid var(--line);
+  text-align: center;
+  padding: 20px 16px;
+  margin-top: auto;
+  background-color: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+footer p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   5. Buttons & Badges
+   -------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  min-height: 38px;
+  text-align: center;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.btn-secondary {
+  background-color: var(--surface-alt);
+  color: var(--text);
+  border-color: var(--line);
+}
+
+.btn-secondary:hover {
+  background-color: var(--line);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.btn-post {
+  background-color: var(--btn-post);
+  color: #ffffff;
+  border-color: var(--btn-post-dark);
+}
+
+.btn-post:hover {
+  background-color: var(--btn-post-dark);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.button-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.top-margin-16 {
+  margin-top: 16px;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+.badge-get {
+  background-color: var(--get-bg);
+  color: var(--get-text);
+  border: 1px solid var(--get-border);
+}
+
+.badge-post {
+  background-color: var(--post-bg);
+  color: var(--post-text);
+  border: 1px solid var(--post-border);
+}
+
+.badge-route {
+  background-color: var(--route-bg);
+  color: var(--route-text);
+  border: 1px solid var(--route-border);
+}
+
+.badge-query {
+  background-color: var(--query-bg);
+  color: var(--query-text);
+  border: 1px solid var(--query-border);
+}
+
+/* --------------------------------------------------------------------------
+   6. Forms & Interactive Inputs (Mobile First)
+   -------------------------------------------------------------------------- */
+.search-form {
+  margin-top: 16px;
+  margin-bottom: 20px;
+}
+
+.search-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filter-field,
+.filter-field-keyword {
+  width: 100%;
+}
+
+.filter-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface);
+  color: var(--text);
+  outline: none;
+  min-height: 42px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-focus);
+}
+
+.full-width {
+  width: 100%;
+}
+
+.filter-actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+/* Post Form Card */
+.form-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 24px;
+}
+
+.form-title {
+  margin-top: 0;
+  margin-bottom: 14px;
+  font-size: 1.15rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.form-field {
+  margin-bottom: 14px;
+}
+
+.form-field-large {
+  margin-bottom: 18px;
+}
+
+.form-label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.88rem;
+}
+
+.text-danger {
+  color: var(--danger);
+}
+
+.validation-error {
+  font-size: 0.8rem;
+  display: block;
+  margin-top: 3px;
+}
+
+/* --------------------------------------------------------------------------
+   7. Cards & Educational Layout Components (Mobile First)
+   -------------------------------------------------------------------------- */
+.demo-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 20px;
+  margin-bottom: 28px;
+}
+
+.demo-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.demo-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.demo-card h2 {
+  font-size: 1.15rem;
+  margin-top: 10px;
+  margin-bottom: 8px;
+}
+
+.demo-card p {
+  font-size: 0.9rem;
+  flex-grow: 1;
+  margin-bottom: 14px;
+}
+
+.step-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.step-header {
+  margin-top: 0;
+  font-size: 1.05rem;
+}
+
+.step-subtext,
+.step-description {
+  font-size: 0.88rem;
+  margin-bottom: 12px;
+}
+
+/* Entity Cards & Tabs */
+.entity-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-top: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.entity-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.entity-title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.entity-subtitle {
+  margin: 2px 0 0 0;
+  font-size: 0.9rem;
+}
+
+.tab-section {
+  margin-bottom: 16px;
+}
+
+.tab-title {
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.tab-button-bar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  min-height: 32px;
+}
+
+.tab-panel {
+  background: var(--surface-alt);
+  border: 1px solid var(--line);
+  padding: 14px;
+  border-radius: var(--radius-sm);
+}
+
+.tab-panel h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+/* Description Lists */
+dl {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin: 0;
+}
+
+dt {
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+dt:first-of-type {
+  margin-top: 0;
+}
+
+dd {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* --------------------------------------------------------------------------
+   8. HTTP Protocol & Routing Inspector (Mobile First)
+   -------------------------------------------------------------------------- */
+.http-inspector {
+  background-color: var(--inspector-bg);
+  color: var(--inspector-text);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-top: 20px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.82rem;
+}
+
+.http-inspector h3 {
+  color: var(--inspector-title);
+  font-size: 0.88rem;
+  margin-top: 0;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #334155;
+  padding-bottom: 6px;
+}
+
+.http-inspector .url-display {
+  background: var(--inspector-surface);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--inspector-url);
+  word-break: break-all;
+  margin-top: 6px;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.url-subtext {
+  margin-top: 6px;
+}
+
+.url-hint,
+.subtext-hint {
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-style: italic;
+}
+
+.inspector-subtitle {
+  margin-top: 12px;
+  font-weight: 600;
+  color: var(--inspector-title);
+}
+
+.inspector-section {
+  margin-top: 12px;
+}
+
+.inspector-empty {
+  color: #94a3b8;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.param-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.param-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0;
+  border-bottom: 1px dashed #334155;
+}
+
+.param-row:last-child {
+  border-bottom: none;
+}
+
+.param-key {
+  color: var(--inspector-key);
+  font-weight: 600;
+}
+
+.purple-key {
+  color: var(--inspector-purple);
+}
+
+.teal-key {
+  color: var(--inspector-teal);
+}
+
+.param-val {
+  color: #e2e8f0;
+  word-break: break-all;
+}
+
+.code-payload {
+  margin-top: 6px;
+  background: var(--inspector-surface);
+  color: var(--inspector-key);
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  overflow-x: auto;
+  line-height: 1.4;
+}
+
+/* --------------------------------------------------------------------------
+   9. Tables & Informational Callouts (Mobile First)
+   -------------------------------------------------------------------------- */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  margin-top: 14px;
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+
+th, td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.85rem;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+th {
+  background-color: var(--surface-alt);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+tbody tr:hover {
+  background-color: #fafbfc;
+}
+
+.clean-table {
+  width: 100%;
+  border: none;
+  box-shadow: none;
+  margin-top: 10px;
+}
+
+.no-results {
+  background-color: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  text-align: center;
+  margin-top: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.no-results p {
+  margin: 0;
+}
+
+/* Info Box / Educational Callout */
+.info-box {
+  background-color: #eff6ff;
+  border-left: 4px solid #3b82f6;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 14px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.info-box-top-margin {
+  margin-top: 24px;
+}
+
+.info-box h4 {
+  margin: 0 0 6px 0;
+  color: #1e40af;
+  font-size: 0.95rem;
+}
+
+.info-box p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #1e3a8a;
+}
+
+.info-box ul,
+.info-box ol {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+  color: #1e3a8a;
+  font-size: 0.88rem;
+}
+
+.info-box li {
+  margin-bottom: 6px;
+}
+
+.prg-steps {
+  margin-top: 6px;
+  margin-bottom: 0;
+}
+
+/* PRG Flash Alert */
+.alert-success {
+  background-color: var(--success-bg);
+  border: 1px solid var(--success-border);
+  color: var(--success-text);
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+}
+
+.alert-success h4 {
+  margin: 0 0 4px 0;
+  font-size: 1rem;
+  color: var(--success-text);
+}
+
+.alert-success p {
+  margin: 0;
+  color: #166534;
+  font-size: 0.88rem;
+}
+
+.flash-details {
+  margin-top: 10px;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.flash-hint {
+  margin-top: 8px;
+  font-size: 0.82rem;
+  font-style: italic;
+}
+
+/* ==========================================================================
+   10. Progressive Enhancements (Mobile-First Media Queries)
+   ========================================================================== */
+
+/* Tablet Breakpoint (min-width: 640px) */
+@media (min-width: 640px) {
+  header {
+    padding: 12px 20px;
+  }
+
+  .header-container {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  header nav {
+    width: auto;
+  }
+
+  header nav ul {
+    gap: 8px;
+  }
+
+  header nav a {
+    font-size: 0.9rem;
+    padding: 6px 12px;
+  }
+
+  main {
+    margin: 24px auto;
+    padding: 0 20px;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+    margin-bottom: 10px;
+  }
+
+  .search-group {
+    flex-direction: row;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .filter-field {
+    flex: 1;
+    min-width: 150px;
+  }
+
+  .filter-field-keyword {
+    flex: 1.2;
+    min-width: 180px;
+  }
+
+  .filter-actions {
+    margin-top: 0;
+  }
+
+  .form-card {
+    padding: 24px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .entity-card {
+    padding: 24px;
+  }
+
+  .entity-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  dl {
+    grid-template-columns: 160px 1fr;
+    gap: 12px 20px;
+    padding: 18px;
+    align-items: center;
+  }
+
+  dt {
+    margin-top: 0;
+    font-size: 0.82rem;
+  }
+
+  .param-list {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .param-row {
+    display: table-row;
+    border-bottom: none;
+  }
+
+  .param-key {
+    display: table-cell;
+    padding: 4px 14px 4px 0;
+    width: 160px;
+    vertical-align: top;
+  }
+
+  .param-val {
+    display: table-cell;
+    padding: 4px 0;
+  }
+
+  .demo-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .info-box {
+    padding: 18px 20px;
+  }
+}
+
+/* Desktop Breakpoint (min-width: 1024px) */
+@media (min-width: 1024px) {
+  main {
+    max-width: 1000px;
+    margin: 32px auto;
+    padding: 0 24px;
+  }
+
+  h1 {
+    font-size: 1.9rem;
+  }
+
+  table {
+    display: table;
+    white-space: normal;
+  }
+
+  th, td {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+  }
+
+  .step-card {
+    padding: 20px 24px;
+  }
+}

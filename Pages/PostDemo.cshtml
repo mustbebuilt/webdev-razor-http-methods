@@ -1,0 +1,148 @@
+@page
+@model MyRazorApp.Pages.PostDemoModel
+@{
+    ViewData["Title"] = "HTTP POST & PRG Pattern Demo";
+    var rawUrl = Request.Path;
+}
+
+<div>
+    <p><a asp-page="/Index">&larr; Back to HTTP Demos Hub</a></p>
+
+    <h1>
+        <span class="badge badge-post">HTTP POST</span>
+        &amp; Post-Redirect-Get (PRG) Demo
+    </h1>
+    <p>This page demonstrates submitting form payloads inside the <strong>HTTP Request Body</strong> using <code>method="post"</code>, persisting new records into <code>Data/feedback.json</code>, and implementing the <strong>Post-Redirect-Get (PRG)</strong> pattern.</p>
+
+    <!-- Post-Redirect-Get Success Flash Alert -->
+    @if (!string.IsNullOrEmpty(Model.FlashMessage))
+    {
+        <div class="alert-success">
+            <h4>@Model.FlashMessage</h4>
+            <p><strong>Post-Redirect-Get (PRG) executed!</strong> The POST request was processed on the server, saved to the JSON file, and redirected back via an HTTP 302/303 redirect to a GET endpoint.</p>
+            <div class="flash-details">
+                <div><strong>Submitted Name:</strong> @Model.SubmittedStudentName</div>
+                <div><strong>Category:</strong> @Model.SubmittedCategory</div>
+                <div><strong>Feedback Comments:</strong> "@Model.SubmittedFeedback"</div>
+            </div>
+            <p class="flash-hint">Notice: If you press Refresh (F5) right now, your browser will NOT show a "Confirm Form Resubmission" warning because the current request is a clean GET request!</p>
+        </div>
+    }
+
+    <!-- Form using HTTP POST -->
+    <div class="form-card">
+        <h3 class="form-title">Submit Student Feedback (POST Form)</h3>
+
+        <form method="post">
+            <div class="form-row">
+                <div>
+                    <label asp-for="Input.StudentName" class="form-label"></label>
+                    <input asp-for="Input.StudentName" placeholder="e.g. Alex Taylor" class="search-input full-width" />
+                    <span asp-validation-for="Input.StudentName" class="text-danger validation-error"></span>
+                </div>
+
+                <div>
+                    <label asp-for="Input.Email" class="form-label"></label>
+                    <input asp-for="Input.Email" type="email" placeholder="alex@university.ac.uk" class="search-input full-width" />
+                    <span asp-validation-for="Input.Email" class="text-danger validation-error"></span>
+                </div>
+            </div>
+
+            <div class="form-field">
+                <label asp-for="Input.Category" class="form-label"></label>
+                <select asp-for="Input.Category" class="search-input full-width">
+                    <option value="">-- Select Category --</option>
+                    <option value="Lecture Content">Lecture Content</option>
+                    <option value="Lab Exercise">Lab Exercise</option>
+                    <option value="Assessment Query">Assessment Query</option>
+                    <option value="General Suggestion">General Suggestion</option>
+                </select>
+                <span asp-validation-for="Input.Category" class="text-danger validation-error"></span>
+            </div>
+
+            <div class="form-field-large">
+                <label asp-for="Input.Comments" class="form-label"></label>
+                <textarea asp-for="Input.Comments" rows="4" placeholder="Enter feedback details here..." class="search-input full-width"></textarea>
+                <span asp-validation-for="Input.Comments" class="text-danger validation-error"></span>
+            </div>
+
+            <div>
+                <button type="submit" class="btn btn-primary btn-post">
+                    Submit Feedback via HTTP POST &rarr;
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Real-Time HTTP POST Payload Inspector -->
+    <div class="http-inspector">
+        <h3>HTTP POST Protocol Inspector</h3>
+        <div><strong>Current Page Request Line:</strong> <code>GET @rawUrl HTTP/1.1</code></div>
+        <div class="url-display inspector-url">
+            <strong>Browser Address Bar URL:</strong> @rawUrl
+            <br/><span class="url-hint">(Notice that even after submitting form data, NO form fields appear in the address bar!)</span>
+        </div>
+
+        <div class="inspector-section"><strong>Wire Payload format when POST is transmitted:</strong></div>
+        <pre class="code-payload">
+POST /PostDemo HTTP/1.1
+Host: localhost:5110
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 142
+
+Input.StudentName=Alex+Taylor&amp;Input.Email=alex%40university.ac.uk&amp;Input.Category=Lab+Exercise&amp;Input.Comments=Great+demo!
+        </pre>
+    </div>
+
+    <!-- Persisted Feedback from JSON File -->
+    <h2>Persisted Submissions in JSON Storage (@Model.RecentFeedback.Count records)</h2>
+    @if (!Model.RecentFeedback.Any())
+    {
+        <div class="no-results">
+            <p>No feedback recorded in <code>Data/feedback.json</code> yet. Submit the form above!</p>
+        </div>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Student Name</th>
+                    <th>Category</th>
+                    <th>Comments</th>
+                    <th>Submitted Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var fb in Model.RecentFeedback)
+                {
+                    <tr>
+                        <td><strong>@fb.Id</strong></td>
+                        <td>@fb.StudentName</td>
+                        <td><span class="badge badge-post">@fb.Category</span></td>
+                        <td>@fb.Comments</td>
+                        <td>@fb.SubmittedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <!-- Educational Explanation Box -->
+    <div class="info-box">
+        <h4>Why use HTTP POST &amp; the Post-Redirect-Get (PRG) Pattern?</h4>
+        <ul>
+            <li><strong>Request Body Encapsulation:</strong> Unlike GET, HTTP POST sends data inside the request body. Form inputs (such as passwords, credit card numbers, or long text comments) are not stored in browser history, bookmarks, or web server access logs.</li>
+            <li><strong>State Mutation &amp; JSON Persistence:</strong> Use POST whenever performing an action that changes data on the server. In this demo, the server appends the record into <code>Data/feedback.json</code> without needing an external SQL database server.</li>
+            <li><strong>The Post-Redirect-Get (PRG) Pattern:</strong>
+                <ol class="prg-steps">
+                    <li>Client submits form via <code>POST</code>.</li>
+                    <li>Server processes data (saves to JSON file) and responds with <code>RedirectToPage("/PostDemo")</code> (HTTP 302/303 redirect).</li>
+                    <li>Browser follows redirect and issues a fresh <code>GET</code> request to load the updated view with the flash confirmation alert.</li>
+                </ol>
+                <em>This prevents duplicate form submissions if the user refreshes or hits the back button!</em>
+            </li>
+        </ul>
+    </div>
+</div>

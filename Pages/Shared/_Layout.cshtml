@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - HTTP Methods &amp; Routing Demo</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <a class="navbar-brand" asp-page="/Index">
+                <span class="brand-badge">HTTP</span>
+                <span class="brand-title">Methods &amp; Routing</span>
+            </a>
+            <nav>
+                <ul>
+                    <li><a asp-page="/Index">Overview Hub</a></li>
+                    <li><a asp-page="/GetDemo">1. GET &amp; Query</a></li>
+                    <li><a asp-page="/RouteDemo">2. Route Params</a></li>
+                    <li><a asp-page="/MultiRouteDemo">3. Multi-Route</a></li>
+                    <li><a asp-page="/PostDemo">4. POST &amp; PRG</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        @RenderBody()
+    </main>
+
+    <footer>
+        <p>&copy; @DateTime.Now.Year HTTP Methods &amp; Routing Educational Demo &bull; Built with ASP.NET Core Razor Pages</p>
+    </footer>
+</body>
+</html>

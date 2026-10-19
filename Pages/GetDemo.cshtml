@@ -1,0 +1,127 @@
+@page
+@model MyRazorApp.Pages.GetDemoModel
+@{
+    ViewData["Title"] = "HTTP GET & Query Strings Demo";
+    var rawUrl = Request.Path + Request.QueryString;
+}
+
+<div>
+    <p><a asp-page="/Index">&larr; Back to HTTP Demos Hub</a></p>
+
+    <h1>
+        <span class="badge badge-get">HTTP GET</span>
+        Query Strings Demo
+    </h1>
+    <p>This page demonstrates how HTML form submissions using <code>method="get"</code> serialize inputs into the URL query string. All course data is loaded directly from a JSON file (<code>Data/courses.json</code>).</p>
+
+    <!-- Filter Form using HTTP GET -->
+    <form method="get" class="search-form">
+        <div class="search-group">
+            <div class="filter-field">
+                <label class="filter-label">Subject Category</label>
+                <select asp-for="Subject" class="search-input full-width">
+                    <option value="">-- All Categories --</option>
+                    @foreach (var cat in Model.AvailableCategories)
+                    {
+                        <option value="@cat">@cat</option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-field">
+                <label class="filter-label">Course Level</label>
+                <select asp-for="Level" class="search-input full-width">
+                    <option value="">-- All Levels --</option>
+                    @foreach (var lvl in Model.AvailableLevels)
+                    {
+                        <option value="@lvl">@lvl</option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-field-keyword">
+                <label class="filter-label">Keyword</label>
+                <input type="text" asp-for="Keyword" placeholder="e.g. ASP.NET or SQL..." class="search-input full-width" />
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">Filter Courses (GET)</button>
+                @if (Request.Query.Count > 0)
+                {
+                    <a asp-page="/GetDemo" class="btn btn-secondary">Reset Filters</a>
+                }
+            </div>
+        </div>
+    </form>
+
+    <!-- Real-Time HTTP & Query String Inspector -->
+    <div class="http-inspector">
+        <h3>HTTP Request &amp; Query String Inspector</h3>
+        <div><strong>Request Line:</strong> <code>GET @rawUrl HTTP/1.1</code></div>
+        <div class="url-display inspector-url">
+            <strong>Browser URL:</strong> @rawUrl
+        </div>
+
+        <div class="inspector-subtitle">Parsed Query String Parameters (Request.Query):</div>
+        @if (Request.Query.Count == 0)
+        {
+            <div class="inspector-empty">No query parameters in URL. Submit the form above to see parameter serialization.</div>
+        }
+        else
+        {
+            <div class="param-list">
+                @foreach (var key in Request.Query.Keys)
+                {
+                    <div class="param-row">
+                        <div class="param-key">? @key</div>
+                        <div class="param-val">= "@Request.Query[key]"</div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Filter Results -->
+    <h2>Course Results (@Model.FilteredCourses.Count found)</h2>
+    @if (!Model.FilteredCourses.Any())
+    {
+        <div class="no-results">
+            <p>No courses matched your current query parameters.</p>
+        </div>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>Course Code</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Level</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var course in Model.FilteredCourses)
+                {
+                    <tr>
+                        <td><strong>@course.Code</strong></td>
+                        <td>@course.Title</td>
+                        <td>@course.Category</td>
+                        <td><span class="badge badge-query">@course.Level</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <!-- Educational Explanation Box -->
+    <div class="info-box">
+        <h4>Why use HTTP GET &amp; Query Strings?</h4>
+        <ul>
+            <li><strong>Bookmarkable &amp; Shareable:</strong> Because all search criteria are stored in the URL query string (<code>?Subject=Computer+Science&amp;Level=Beginner</code>), users can copy and paste the URL or bookmark it to return to the exact same filtered state.</li>
+            <li><strong>Idempotence:</strong> Executing a GET request multiple times does not alter server state or create duplicate records.</li>
+            <li><strong>JSON Data Source:</strong> In this application, records are loaded from <code>Data/courses.json</code> and filtered dynamically in C# using LINQ.</li>
+            <li><strong>Razor Binding:</strong> In ASP.NET Core Razor Pages, decorate properties with <code>[BindProperty(SupportsGet = true)]</code> to automatically read values from query string keys matching property names.</li>
+        </ul>
+    </div>
+</div>

@@ -1,0 +1,158 @@
+@page "{department?}/{id:int?}"
+@model MyRazorApp.Pages.MultiRouteDemoModel
+@{
+    ViewData["Title"] = "Multiple URL Route Parameters Demo";
+    var rawUrl = Request.Path + Request.QueryString;
+    var activeTab = Model.Tab?.ToLower() ?? "overview";
+}
+
+<div>
+    <p><a asp-page="/Index">&larr; Back to HTTP Demos Hub</a></p>
+
+    <h1>
+        <span class="badge badge-route">Multiple Route Parameters</span>
+        Demo
+    </h1>
+    <p>Demonstrates how ASP.NET Core Razor Pages maps multiple route segments in the URL path (defined by <code>@@page "{department?}/{id:int?}"</code>). Data is loaded from <code>Data/staff.json</code>.</p>
+
+    <!-- Step 1: Select Department (Route Parameter 1: {department}) -->
+    <div class="step-card">
+        <h3 class="step-header">1. Select Department &rarr; Route Segment 1: <code>{department}</code></h3>
+        <p class="step-subtext">Click a department slug to set the first URL path parameter (e.g. <code>/MultiRouteDemo/<strong>engineering</strong></code>):</p>
+        <div class="button-bar">
+            @foreach (var dept in Model.AvailableDepartments)
+            {
+                var isSelected = string.Equals(Model.Department, dept.Slug, StringComparison.OrdinalIgnoreCase);
+                <a asp-page="/MultiRouteDemo"
+                   asp-route-department="@dept.Slug"
+                   class="btn @(isSelected ? "btn-primary" : "btn-secondary")">
+                    /@dept.Slug
+                </a>
+            }
+        </div>
+    </div>
+
+    <!-- Step 2: Select Staff Member (Route Parameter 2: {id}) -->
+    <div class="step-card">
+        <h3 class="step-header">2. Select Staff Member &rarr; Route Segment 2: <code>{id:int}</code></h3>
+        <p class="step-subtext">Click a staff member in <strong>@Model.Department</strong> to append the second URL path parameter (e.g. <code>/MultiRouteDemo/<strong>@Model.Department</strong>/<strong>101</strong></code>):</p>
+        <div class="button-bar">
+            @foreach (var staff in Model.DepartmentStaff)
+            {
+                var isSelected = Model.SelectedMember?.Id == staff.Id;
+                <a asp-page="/MultiRouteDemo"
+                   asp-route-department="@Model.Department"
+                   asp-route-id="@staff.Id"
+                   asp-route-tab="@Model.Tab"
+                   class="btn @(isSelected ? "btn-primary" : "btn-secondary")">
+                    ID @staff.Id: @staff.Name
+                </a>
+            }
+        </div>
+    </div>
+
+    <!-- Real-Time Multiple Route Parameter Inspector -->
+    <div class="http-inspector">
+        <h3>Multiple Route Parameter &amp; Query String Inspector</h3>
+        <div><strong>Razor Page Directive:</strong> <code>@@page "{department?}/{id:int?}"</code></div>
+        <div class="url-display url-subtext">
+            <strong>Full Browser URL:</strong> @rawUrl
+        </div>
+
+        <div class="param-list">
+            <div class="param-row">
+                <div class="param-key purple-key">Route Segment 1:</div>
+                <div class="param-val">
+                    <code>RouteData.Values["department"] = "@(RouteData.Values["department"] ?? "None")"</code>
+                </div>
+            </div>
+
+            <div class="param-row">
+                <div class="param-key purple-key">Route Segment 2:</div>
+                <div class="param-val">
+                    <code>RouteData.Values["id"] = "@(RouteData.Values["id"] ?? "None")"</code>
+                </div>
+            </div>
+
+            <div class="param-row param-row-space">
+                <div class="param-key teal-key">Query String:</div>
+                <div class="param-val">
+                    <code>tab = "@Model.Tab"</code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Selected Staff Member View with Query String Tabs -->
+    @if (Model.SelectedMember != null)
+    {
+        <div class="entity-card">
+            <div class="entity-header">
+                <div>
+                    <h2 class="entity-title">@Model.SelectedMember.Name</h2>
+                    <p class="entity-subtitle">Department: <strong>@Model.SelectedMember.Department</strong> | Role: <strong>@Model.SelectedMember.Role</strong></p>
+                </div>
+                <div>
+                    <span class="badge badge-route">Route: /@Model.Department/@Model.SelectedMember.Id</span>
+                </div>
+            </div>
+
+            <!-- Tab Modifiers using Query Strings -->
+            <div class="tab-section">
+                <h4 class="tab-title">3. Combined Query String Modifier (<code>?tab=...</code>)</h4>
+                <div class="tab-button-bar">
+                    <a asp-page="/MultiRouteDemo"
+                       asp-route-department="@Model.Department"
+                       asp-route-id="@Model.SelectedMember.Id"
+                       asp-route-tab="overview"
+                       class="btn tab-btn @(activeTab == "overview" ? "btn-primary" : "btn-secondary")">
+                        ?tab=overview
+                    </a>
+                    <a asp-page="/MultiRouteDemo"
+                       asp-route-department="@Model.Department"
+                       asp-route-id="@Model.SelectedMember.Id"
+                       asp-route-tab="compensation"
+                       class="btn tab-btn @(activeTab == "compensation" ? "btn-primary" : "btn-secondary")">
+                        ?tab=compensation
+                    </a>
+                </div>
+            </div>
+
+            <!-- Active Tab Content -->
+            <div class="tab-panel">
+                @if (activeTab == "overview")
+                {
+                    <h4>Overview (Route: <code>/@Model.Department/@Model.SelectedMember.Id</code> | Query: <code>?tab=overview</code>)</h4>
+                    <dl>
+                        <dt>Name</dt><dd>@Model.SelectedMember.Name</dd>
+                        <dt>Email</dt><dd>@Model.SelectedMember.Email</dd>
+                        <dt>Department Slug</dt><dd><code>@Model.SelectedMember.Department</code></dd>
+                    </dl>
+                }
+                else
+                {
+                    <h4>Compensation (Route: <code>/@Model.Department/@Model.SelectedMember.Id</code> | Query: <code>?tab=compensation</code>)</h4>
+                    <dl>
+                        <dt>Salary</dt><dd>@Model.SelectedMember.Salary</dd>
+                        <dt>Employment Type</dt><dd>@Model.SelectedMember.EmploymentType</dd>
+                        <dt>Start Date</dt><dd>@Model.SelectedMember.HiredDate</dd>
+                    </dl>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Educational Explanation Box -->
+    <div class="info-box info-box-top-margin">
+        <h4>How ASP.NET Core Razor Pages processes Multiple Route Parameters</h4>
+        <ul>
+            <li><strong>Directive Definition:</strong> Define multiple parameters in the <code>@@page</code> directive at the top of the Razor file, e.g., <code>@@page "{department?}/{id:int?}"</code>.</li>
+            <li><strong>Tag Helper Parameter Matching:</strong> When using Tag Helpers like <code>asp-route-department="engineering" asp-route-id="101"</code>:
+                <ul>
+                    <li>Attributes matching route parameters in <code>@@page</code> become path segments (e.g. <code>/engineering/101</code>).</li>
+                    <li>Attributes NOT matching route parameters (e.g. <code>asp-route-tab="salary"</code>) automatically become URL Query Strings (e.g. <code>?tab=salary</code>).</li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</div>

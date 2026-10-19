@@ -1,0 +1,38 @@
+[
+  {
+    "code": "CS101",
+    "title": "Web Development Fundamentals",
+    "category": "Computer Science",
+    "level": "Beginner"
+  },
+  {
+    "code": "CS102",
+    "title": "ASP.NET Core Razor Pages",
+    "category": "Computer Science",
+    "level": "Intermediate"
+  },
+  {
+    "code": "CS201",
+    "title": "Advanced C# & Entity Framework",
+    "category": "Computer Science",
+    "level": "Advanced"
+  },
+  {
+    "code": "DB101",
+    "title": "Database Systems & SQL",
+    "category": "Data Science",
+    "level": "Beginner"
+  },
+  {
+    "code": "DS202",
+    "title": "Data Analysis with Python",
+    "category": "Data Science",
+    "level": "Intermediate"
+  },
+  {
+    "code": "SE301",
+    "title": "Software Engineering Architecture",
+    "category": "Software Engineering",
+    "level": "Advanced"
+  }
+]
